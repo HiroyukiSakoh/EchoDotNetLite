@@ -46,22 +46,21 @@ namespace EchoDotNetLiteLANBridge.Example
             try
             {
                 Task.Run(() => serviceProvider.GetService<Example>().ExecuteAsync());
-                Console.ReadKey();
+                Task.WaitAll(Task.Delay(-1));
             }
             catch (AggregateException ex)
             {
                 logger.LogError(ex, "AggregateException");
-                Console.ReadKey();
             }
             catch (Exception ex)
             {
                 logger.LogError(ex, "Exception");
-                Console.ReadKey();
             }
             finally
             {
                 lanClient?.Dispose();
             }
+            Task.WaitAll(Task.Delay(-1));
         }
     }
 }

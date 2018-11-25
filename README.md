@@ -3,7 +3,7 @@ ECHONET Liteやその周辺の規格/仕様を.Net Core 2.1で実装したもの
 
 # 概要図
 
-![概要図](image.png)
+![概要図](image.png?3)
 
 
 # プロジェクト構成

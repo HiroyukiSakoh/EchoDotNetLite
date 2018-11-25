@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Linq;
 using System.Net;
+using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 
@@ -16,8 +17,7 @@ namespace EchoDotNetLiteLANBridge
         private static int DefaultUdpPort = 3610;
         public LANClient(ILogger<LANClient> logger)
         {
-            string hostname = Dns.GetHostName();
-            var selfAddresses = Dns.GetHostAddresses(hostname).Select(ip=>ip.ToString()).ToList();
+            var selfAddresses = NetworkInterface.GetAllNetworkInterfaces().SelectMany(ni => ni.GetIPProperties().UnicastAddresses.Select(ua => ua.Address.ToString()));
             _logger = logger;
             try
             {
@@ -29,6 +29,7 @@ namespace EchoDotNetLiteLANBridge
             catch (Exception ex)
             {
                 _logger.LogDebug(ex, "Exception");
+                throw;
             }
             Task.Run(async () =>
             {

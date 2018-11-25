@@ -71,22 +71,21 @@ namespace EchoDotNetLiteSkstackIpBridge.Example
                     serviceProvider.GetService<EchoClient>().Initialize(skStackClient.SelfIpaddr);
                     Task.Run(() => serviceProvider.GetService<Example>().ExecuteAsync());
                 }
-                Console.ReadKey();
+                Task.WaitAll(Task.Delay(-1));
             }
             catch (AggregateException ex)
             {
                 logger.LogError(ex, "AggregateException");
-                Console.ReadKey();
             }
             catch (Exception ex)
             {
                 logger.LogError(ex, "Exception");
-                Console.ReadKey();
             }
             finally
             {
                 skStackClient?.Close();
             }
+            Task.WaitAll(Task.Delay(-1));
         }
 
     }
