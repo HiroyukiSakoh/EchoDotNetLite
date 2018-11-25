@@ -19,7 +19,8 @@ namespace EchoDotNetLite.Specifications
             if (ClassGroup != null)
             {
                 //スーパークラスのプロパティを列挙
-                var superClassFilePath = $".\\MasterData\\{ClassGroup.SuperClass}.json";
+                
+                var superClassFilePath = Path.Combine(Directory.GetCurrentDirectory(), "MasterData", $"{ClassGroup.SuperClass}.json");
                 if (File.Exists(superClassFilePath))
                 {
                     var superClassProperties = JsonConvert.DeserializeObject<PropertyMaster>(File.ReadAllText(superClassFilePath, new UTF8Encoding(false)));
@@ -28,7 +29,7 @@ namespace EchoDotNetLite.Specifications
                 Class = ClassGroup.ClassList.Where(c => c.Status && c.ClassCode == classCode).FirstOrDefault();
                 if (Class.Status)
                 {
-                    var classFilePath = $".\\MasterData\\0x{ClassGroup.ClassGroupCode:X2}-{ClassGroup.ClassGroupName}\\0x{Class.ClassCode:X2}-{Class.ClassName}.json";
+                    var classFilePath = Path.Combine(Directory.GetCurrentDirectory(), "MasterData",$"0x{ClassGroup.ClassGroupCode:X2}-{ClassGroup.ClassGroupName}", $"0x{Class.ClassCode:X2}-{Class.ClassName}.json");
                     if (File.Exists(classFilePath))
                     {
                         //クラスのプロパティを列挙

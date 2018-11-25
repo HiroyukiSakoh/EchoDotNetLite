@@ -30,7 +30,8 @@ namespace EchoDotNetLite.Specifications
         {
             if (_Instance == null)
             {
-                _Instance = JsonConvert.DeserializeObject<SpecificationMaster>(File.ReadAllText(".\\MasterData\\SpecificationMaster.json", new UTF8Encoding(false)));
+                var filePath = Path.Combine(Directory.GetCurrentDirectory(), "MasterData", "SpecificationMaster.json");
+                _Instance = JsonConvert.DeserializeObject<SpecificationMaster>(File.ReadAllText(filePath, new UTF8Encoding(false)));
             }
             return _Instance;
         }
