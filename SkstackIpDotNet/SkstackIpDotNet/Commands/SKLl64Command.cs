@@ -1,4 +1,5 @@
 ﻿using SkstackIpDotNet.Responses;
+using System.Net;
 using System.Text;
 
 namespace SkstackIpDotNet.Commands
@@ -38,6 +39,11 @@ namespace SkstackIpDotNet.Commands
             if (HasEchoback)
             {
                 //エコーバックの次に、<IPADDR><CRLF>が来る
+                TaskCompletionSource.SetResult(new SKLL64(eventRow));
+            }
+            else if (IPAddress.TryParse(eventRow, out _))
+            {
+                //エコーバックが無い場合で、<IPADDR><CRLF>として解釈できる行の場合は、それをもって結果を確定する
                 TaskCompletionSource.SetResult(new SKLL64(eventRow));
             }
             base.ReceiveHandler(sendor, eventRow);
