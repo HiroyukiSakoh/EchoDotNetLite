@@ -30,10 +30,17 @@ namespace EchoDotNetLite.Specifications
         {
             if (_Instance == null)
             {
-                var filePath = Path.Combine(Directory.GetCurrentDirectory(), "MasterData", "SpecificationMaster.json");
+                var filePath = Path.Combine(GetSpecificationMasterDataDirectory(), "SpecificationMaster.json");
                 _Instance = JsonConvert.DeserializeObject<SpecificationMaster>(File.ReadAllText(filePath, new UTF8Encoding(false)));
             }
             return _Instance;
+        }
+
+        internal static string GetSpecificationMasterDataDirectory()
+        {
+            var assemblyLocatedDirectory = Path.GetDirectoryName(typeof(SpecificationMaster).Assembly.Location);
+
+            return Path.Combine(assemblyLocatedDirectory, "MasterData");
         }
 
         /// <summary>
