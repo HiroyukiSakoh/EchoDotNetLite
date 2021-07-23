@@ -1,9 +1,9 @@
-﻿using RJCP.IO.Ports;
-using SkstackIpDotNet.Commands;
+﻿using SkstackIpDotNet.Commands;
 using SkstackIpDotNet.Responses;
 using SkstackIpDotNet.Events;
 using System;
 using System.Collections.Generic;
+using System.IO.Ports;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -20,7 +20,7 @@ namespace SkstackIpDotNet
     public class SKDevice : IDisposable
     {
         private readonly ILogger _logger;
-        private SerialPortStream serialPort;
+        private SerialPort serialPort;
         /// <summary>
         /// コンストラクタ
         /// </summary>
@@ -43,7 +43,7 @@ namespace SkstackIpDotNet
         public void Open(string port, int baud, int data, Parity parity, StopBits stopbits)
         {
             _logger.LogTrace("Open");
-            serialPort = new SerialPortStream(port, baud, data, parity, stopbits);
+            serialPort = new SerialPort(port, baud, parity, data, stopbits);
             serialPort.DataReceived += DataReceived;
             serialPort.Open();
         }
@@ -65,13 +65,17 @@ namespace SkstackIpDotNet
         public void Dispose()
         {
             _logger.LogTrace("Dispose");
-            if (serialPort.IsOpen)
+
+            if (!(serialPort is null))
             {
-                serialPort.Close();
-            }
-            if (!serialPort.IsDisposed)
-            {
+                if (serialPort.IsOpen)
+                {
+                    serialPort.Close();
+                }
+
                 serialPort.Dispose();
+
+                serialPort = null;
             }
         }
 
@@ -160,7 +164,7 @@ namespace SkstackIpDotNet
                 //コマンド書き込み
                 var commandBytes = command.GetCommandWithArgument();
                 _logger.LogTrace($">>{command.GetCommandLogString()}");
-                await serialPort.WriteAsync(commandBytes, 0, commandBytes.Length);
+                await serialPort.BaseStream.WriteAsync(commandBytes, 0, commandBytes.Length);
 
                 //タイムアウト or コンプリート
                 if (await Task.WhenAny(taskCompletionSource.Task, Task.Delay(command.Timeout)) == taskCompletionSource.Task)

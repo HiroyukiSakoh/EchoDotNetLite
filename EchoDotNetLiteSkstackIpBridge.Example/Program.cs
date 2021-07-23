@@ -5,9 +5,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using RJCP.IO.Ports;
 using SkstackIpDotNet;
 using System;
+using System.IO.Ports;
 using System.Threading.Tasks;
 
 namespace EchoDotNetLiteSkstackIpBridge.Example

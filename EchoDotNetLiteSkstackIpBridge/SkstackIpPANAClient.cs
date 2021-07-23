@@ -1,11 +1,11 @@
 ﻿using EchoDotNetLite;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using RJCP.IO.Ports;
 using SkstackIpDotNet;
 using SkstackIpDotNet.Events;
 using System;
 using System.Collections.Generic;
+using System.IO.Ports;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
