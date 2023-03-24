@@ -27,10 +27,6 @@ ECHONET Liteやその周辺の規格/仕様を.Net Core 2.1で実装したもの
 * 機器オブジェクトエミュレーター:[MoekadenRoom](https://github.com/SonyCSL/MoekadenRoom/blob/master/README.jp.md)
 * 低圧スマート電力量メータ:中部電力管内(2機)
 
-# 依存関係
-* シリアルポートの処理に[SerialPortStream](https://github.com/jcurl/SerialPortStream)を使用しています。
-* Linux上で動作させる場合、[こちら](https://github.com/jcurl/SerialPortStream#linux)に記載の通り、サポート・ライブラリー`libnserial.so`をコンパイルする必要があります
-
 # 参考情報
 * [HEMS-スマートメーターBルート(低圧電力メーター)運用ガイドライン第4.0版](http://www.meti.go.jp/committee/kenkyukai/shoujo/smart_house/pdf/009_s03_00.pdf)
 * [エコーネット規格　（一般公開）](https://echonet.jp/spec_g/)

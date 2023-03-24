@@ -1,8 +1,8 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using RJCP.IO.Ports;
 using System;
+using System.IO.Ports;
 using System.Threading.Tasks;
 
 namespace SkstackIpDotNet.Example
