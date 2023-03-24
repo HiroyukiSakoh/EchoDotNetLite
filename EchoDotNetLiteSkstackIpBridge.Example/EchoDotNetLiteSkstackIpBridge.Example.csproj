@@ -18,7 +18,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\EchoDotNetLite.Specifications\EchoDotNetLite.Specifications.csproj" />
-    <ProjectReference Include="..\EchoDotnetLiteSkstackIpBridge\EchoDotNetLiteSkstackIpBridge.csproj" />
+    <ProjectReference Include="..\EchoDotNetLiteSkstackIpBridge\EchoDotNetLiteSkstackIpBridge.csproj" />
   </ItemGroup>
 
   <ItemGroup>
