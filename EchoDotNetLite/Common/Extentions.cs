@@ -1,6 +1,4 @@
 ﻿using EchoDotNetLite.Models;
-using System;
-using System.Collections.Generic;
 using System.Text;
 
 namespace EchoDotNetLite.Common
@@ -9,12 +7,11 @@ namespace EchoDotNetLite.Common
     {
         public static string GetDebugString(this EchoObjectInstance echoObjectInstance)
         {
-            var sb = new StringBuilder();
             if (echoObjectInstance == null)
             {
                 return "null";
             }
-            if(echoObjectInstance.Spec == null)
+            if (echoObjectInstance.Spec == null)
             {
                 return "Spec null";
             }

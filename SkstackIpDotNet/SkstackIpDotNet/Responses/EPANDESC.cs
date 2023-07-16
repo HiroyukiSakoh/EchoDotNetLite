@@ -8,6 +8,12 @@
         /// <summary>
         /// コンストラクタ
         /// </summary>
+        public EPANDESC() : base()
+        {
+        }
+        /// <summary>
+        /// コンストラクタ
+        /// </summary>
         /// <param name="response"></param>
         public EPANDESC(string response) : base(response)
         {

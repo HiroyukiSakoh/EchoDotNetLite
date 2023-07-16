@@ -1,10 +1,7 @@
 ﻿using EchoDotNetLite;
-using EchoDotNetLite.Common;
-using EchoDotNetLite.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using SkstackIpDotNet;
 using System;
 using System.IO.Ports;
@@ -38,7 +35,7 @@ namespace EchoDotNetLiteSkstackIpBridge.Example
             serviceCollection.AddSingleton<SkstackIpPANAClient>();
             serviceCollection.AddSingleton<Example>();
         }
-        static void Main(string[] args)
+        static void Main()
         {
             var serviceCollection = new ServiceCollection();
             ConfigureServices(serviceCollection);
@@ -48,7 +45,7 @@ namespace EchoDotNetLiteSkstackIpBridge.Example
                 .CreateLogger<Example>();
 
             var skStackClient = serviceProvider.GetService<SkstackIpPANAClient>();
-            serviceCollection.AddSingleton<IPANAClient, SkstackIpPANAClient>(f=>skStackClient);
+            serviceCollection.AddSingleton<IPANAClient, SkstackIpPANAClient>(f => skStackClient);
             serviceCollection.AddSingleton<EchoClient>();
             serviceProvider = serviceCollection.BuildServiceProvider();
             var configuration = serviceProvider.GetService<IConfigurationRoot>();
@@ -56,22 +53,16 @@ namespace EchoDotNetLiteSkstackIpBridge.Example
             var BRoutePw = configuration.GetValue<string>("BRoute:Pw");
             try
             {
-                //Windows
-                string devicePort = "COM3";
-                if (System.Environment.OSVersion.Platform.ToString() != "Win32NT")
-                {
-                    //Linux等(Raspbian Stretchで動作確認)
-                    devicePort = "/dev/ttyUSB0";
-                }
+                string devicePort = configuration.GetValue<string>("DevicePort");
                 //シリアルポートOpen
                 skStackClient.OpenAsync(devicePort, 115200, 8, Parity.None, StopBits.One).Wait();
                 //スキャン＆Join
-                if(skStackClient.ScanAndJoinAsync(BRouteId, BRoutePw).Result)
+                if (skStackClient.ScanAndJoinAsync(BRouteId, BRoutePw).Result)
                 {
                     serviceProvider.GetService<EchoClient>().Initialize(skStackClient.SelfIpaddr);
                     Task.Run(() => serviceProvider.GetService<Example>().ExecuteAsync());
                 }
-                Task.WaitAll(Task.Delay(-1));
+                Task.Delay(-1).Wait();
             }
             catch (AggregateException ex)
             {
@@ -85,7 +76,6 @@ namespace EchoDotNetLiteSkstackIpBridge.Example
             {
                 skStackClient?.Close();
             }
-            Task.WaitAll(Task.Delay(-1));
         }
 
     }

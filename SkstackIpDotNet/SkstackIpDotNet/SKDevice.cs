@@ -1,6 +1,7 @@
-﻿using SkstackIpDotNet.Commands;
-using SkstackIpDotNet.Responses;
+﻿using Microsoft.Extensions.Logging;
+using SkstackIpDotNet.Commands;
 using SkstackIpDotNet.Events;
+using SkstackIpDotNet.Responses;
 using System;
 using System.Collections.Generic;
 using System.IO.Ports;
@@ -8,8 +9,6 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Diagnostics;
-using Microsoft.Extensions.Logging;
 
 namespace SkstackIpDotNet
 {
@@ -17,18 +16,15 @@ namespace SkstackIpDotNet
     /// SKSTACK-IP (Single-hop Edition)
     /// SK コマンドのデバイス
     /// </summary>
-    public class SKDevice : IDisposable
+    /// <remarks>
+    /// コンストラクタ
+    /// </remarks>
+    /// <param name="logger">logger</param>
+    public class SKDevice(ILogger<SKDevice> logger) : IDisposable
     {
-        private readonly ILogger _logger;
+        private readonly ILogger _logger = logger;
         private SerialPort serialPort;
-        /// <summary>
-        /// コンストラクタ
-        /// </summary>
-        /// <param name="logger">logger</param>
-        public SKDevice(ILogger<SKDevice> logger)
-        {
-            _logger = logger;
-        }
+
         /// <summary>
         /// 接続を開きます
         /// </summary>
@@ -42,7 +38,7 @@ namespace SkstackIpDotNet
         /// <param name="stopbits">Number of stop bits.</param>
         public void Open(string port, int baud, int data, Parity parity, StopBits stopbits)
         {
-            _logger.LogTrace("Open");
+            _logger.LogInformation("Open");
             serialPort = new SerialPort(port, baud, parity, data, stopbits);
             serialPort.DataReceived += DataReceived;
             serialPort.Open();
@@ -53,9 +49,9 @@ namespace SkstackIpDotNet
         /// </summary>
         public void Close()
         {
-            _logger.LogTrace("Close");
-            if (serialPort.IsOpen)
+            if (serialPort?.IsOpen ?? false)
             {
+                _logger.LogInformation("Close");
                 serialPort.Close();
             }
         }
@@ -65,8 +61,7 @@ namespace SkstackIpDotNet
         public void Dispose()
         {
             _logger.LogTrace("Dispose");
-
-            if (!(serialPort is null))
+            if (serialPort is not null)
             {
                 if (serialPort.IsOpen)
                 {
@@ -77,17 +72,12 @@ namespace SkstackIpDotNet
 
                 serialPort = null;
             }
+            GC.SuppressFinalize(this);
         }
-
-        /// <summary>既知のデータ受信Prefix</summary>
-        private static readonly List<string> WellknownEventPrefix
-            = new List<string>() { "ERXTCP", "ERXUDP" };
 
         /// <summary>受信途中(前回CRLFで終わっていない行)のバッファ</summary>
         private string receiveBuffer = null;
 
-        /// <summary>受信途中の複数行のバッファ</summary>
-        readonly List<string> multiLineBuffer = new List<string>();
         private void DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
             var buffer = new byte[serialPort.BytesToRead];
@@ -109,7 +99,7 @@ namespace SkstackIpDotNet
             list.RemoveAt(list.Count - 1);
             foreach (var data in list)
             {
-                _logger.LogTrace($"<<{data}");
+                _logger.LogTrace("<<{data}", data);
                 //1行をイベント処理へ
                 OnSerialReceived?.Invoke(this, data);
                 if (data.StartsWith("EVENT"))
@@ -131,7 +121,7 @@ namespace SkstackIpDotNet
             }
         }
 
-        private static SemaphoreSlim CommandSemaphore = new SemaphoreSlim(1, 1);
+        private static readonly SemaphoreSlim CommandSemaphore = new(1, 1);
 
         private event EventHandler<string> OnSerialReceived;
         /// <summary>
@@ -151,7 +141,7 @@ namespace SkstackIpDotNet
         /// </summary>
         public event EventHandler<ETCP> OnETCPReceived;
 
-        private async Task<TResponse> ExecuteSKCommandAsync<TResponse>(AbstractSKCommand<TResponse> command) where TResponse:class
+        private async Task<TResponse> ExecuteSKCommandAsync<TResponse>(AbstractSKCommand<TResponse> command) where TResponse : class
         {
             //ほかのコマンドとの排他制御
             await CommandSemaphore.WaitAsync();
@@ -163,15 +153,15 @@ namespace SkstackIpDotNet
             {
                 //コマンド書き込み
                 var commandBytes = command.GetCommandWithArgument();
-                _logger.LogTrace($">>{command.GetCommandLogString()}");
-                await serialPort.BaseStream.WriteAsync(commandBytes, 0, commandBytes.Length);
+                _logger.LogTrace(">>{Command}", command.GetCommandLogString());
+                await serialPort.BaseStream.WriteAsync(commandBytes);
 
                 //タイムアウト or コンプリート
                 if (await Task.WhenAny(taskCompletionSource.Task, Task.Delay(command.Timeout)) == taskCompletionSource.Task)
                 {
                     if (command.HasEchoback)
                     {
-                        _logger.LogTrace($"<<ECHO:{command.EchobackCommand}");
+                        _logger.LogTrace("<<ECHO:{Command}", command.EchobackCommand);
                     }
                     return taskCompletionSource.Task.Result;
                 }
@@ -179,7 +169,7 @@ namespace SkstackIpDotNet
                 {
                     if (command.HasEchoback)
                     {
-                        _logger.LogTrace($"<<ECHO:{command.EchobackCommand}");
+                        _logger.LogTrace("<<ECHO:{Command}", command.EchobackCommand);
                     }
                     throw new TimeoutException("Timeout has expired");
                 }
@@ -504,12 +494,12 @@ namespace SkstackIpDotNet
         /// 対象 IPv6 アドレスに対応する 64bit アドレス
         /// </param>
         /// <returns>OKorFAIL</returns>
-        public async Task<OKorFAIL> SKSecAsync(string mode,string ipaddr,string macaddr)
+        public async Task<OKorFAIL> SKSecAsync(string mode, string ipaddr, string macaddr)
         {
             return await ExecuteSKCommandAsync(new SKSecEnableCommand(new SKSecEnableCommand.Input()
             {
                 Mode = mode,
-                Ipaddr =ipaddr,
+                Ipaddr = ipaddr,
                 Macaddr = macaddr,
             }));
         }
@@ -540,7 +530,7 @@ namespace SkstackIpDotNet
         /// 送信データ
         /// </param>
         /// <returns>OKorFAIL</returns>
-        public async Task<OKorFAIL> SKSendAsync(string handle,byte[] data)
+        public async Task<OKorFAIL> SKSendAsync(string handle, byte[] data)
         {
             return await ExecuteSKCommandAsync(new SKSendCommand(new SKSendCommand.Input()
             {
@@ -577,7 +567,7 @@ namespace SkstackIpDotNet
         /// 送信データ
         /// </param>
         /// <returns>OKorFAIL</returns>
-        public async Task<OKorFAIL> SKSendToAsync(string handle, string ipaddr,string port, SKSendToSec sec,byte[] data)
+        public async Task<OKorFAIL> SKSendToAsync(string handle, string ipaddr, string port, SKSendToSec sec, byte[] data)
         {
             return await ExecuteSKCommandAsync(new SKSendToCommand(new SKSendToCommand.Input()
             {
@@ -690,7 +680,7 @@ namespace SkstackIpDotNet
         /// 設定値域はレジスタ番号に依存します。
         /// </param>
         /// <returns>ESREG</returns>
-        public async Task<ESREG> SKSRegAsync(string sreg,string val)
+        public async Task<ESREG> SKSRegAsync(string sreg, string val)
         {
             return await ExecuteSKCommandAsync(new SKSregCommand(new SKSregCommand.Input()
             {
@@ -772,7 +762,7 @@ namespace SkstackIpDotNet
         /// 0 を指定した場合、そのハンドルは未使用となりポートは着信しません。また 0xFFFF は予約番号で着信しません。
         /// </param>
         /// <returns>OKorFAIL</returns>
-        public async Task<OKorFAIL> SKTcpPortAsync(string index,string port)
+        public async Task<OKorFAIL> SKTcpPortAsync(string index, string port)
         {
             return await ExecuteSKCommandAsync(new SKTcpPortCommand(new SKTcpPortCommand.Input()
             {
@@ -806,7 +796,7 @@ namespace SkstackIpDotNet
         /// 0 を指定した場合は、そのハンドル番号のポートは着信しません。
         /// </param>
         /// <returns>OKorFAIL</returns>
-        public async Task<OKorFAIL> SKUdpPortAsync(string handle,string port)
+        public async Task<OKorFAIL> SKUdpPortAsync(string handle, string port)
         {
             return await ExecuteSKCommandAsync(new SKUdpPortCommand(new SKUdpPortCommand.Input()
             {

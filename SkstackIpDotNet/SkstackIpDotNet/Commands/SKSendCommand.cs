@@ -39,14 +39,12 @@ namespace SkstackIpDotNet.Commands
         {
             get
             {
-                using (var ms = new MemoryStream())
-                using (var bw = new BinaryWriter(ms))
-                {
+                using var ms = new MemoryStream();
+                using var bw = new BinaryWriter(ms);
 
-                    bw.Write(Encoding.ASCII.GetBytes($"{Arg.Handle} {Arg.Datalen} "));
-                    bw.Write(Arg.Data);
-                    return ms.ToArray();
-                }
+                bw.Write(Encoding.ASCII.GetBytes($"{Arg.Handle} {Arg.Datalen} "));
+                bw.Write(Arg.Data);
+                return ms.ToArray();
             }
         }
 
