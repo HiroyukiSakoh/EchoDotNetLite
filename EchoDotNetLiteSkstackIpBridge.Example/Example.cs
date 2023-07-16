@@ -3,11 +3,8 @@ using EchoDotNetLite;
 using EchoDotNetLite.Common;
 using EchoDotNetLite.Models;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Timers;
 
@@ -15,8 +12,8 @@ namespace EchoDotNetLiteSkstackIpBridge.Example
 {
     public class Example
     {
-        private EchoClient echoClient;
-        private ILogger<Example> _logger;
+        private readonly EchoClient echoClient;
+        private readonly ILogger<Example> _logger;
 
         public Example(ILogger<Example> logger, EchoClient echoClient)
         {
@@ -32,7 +29,7 @@ namespace EchoDotNetLiteSkstackIpBridge.Example
 
         private void LogNodeJoined(object sender, EchoDotNetLite.Models.EchoNode e)
         {
-            _logger.LogTrace($"新しいEchoNode {e.Address}");
+            _logger.LogTrace("新しいEchoNode {Address}", e.Address);
             e.OnCollectionChanged += LogEchoObjectChange;
         }
 
@@ -41,11 +38,11 @@ namespace EchoDotNetLiteSkstackIpBridge.Example
             switch (e.type)
             {
                 case CollectionChangeType.Add:
-                    _logger.LogTrace($"EchoObject Add {e.instance.GetDebugString()}");
+                    _logger.LogTrace("EchoObject Add {Object}", e.instance.GetDebugString());
                     e.instance.OnCollectionChanged += LogEchoPropertyChange;
                     break;
                 case CollectionChangeType.Remove:
-                    _logger.LogTrace($"EchoObject Remove {e.instance.GetDebugString()}");
+                    _logger.LogTrace("EchoObject Remove {Object}", e.instance.GetDebugString());
                     break;
                 default:
                     break;
@@ -57,11 +54,11 @@ namespace EchoDotNetLiteSkstackIpBridge.Example
             switch (e.type)
             {
                 case CollectionChangeType.Add:
-                    _logger.LogTrace($"EchoProperty Add {e.instance.GetDebugString()}");
+                    _logger.LogTrace("EchoProperty Add {Property}", e.instance.GetDebugString());
                     e.instance.ValueChanged += LogEchoPropertyValueChanged;
                     break;
                 case CollectionChangeType.Remove:
-                    _logger.LogTrace($"EchoProperty Remove {e.instance.GetDebugString()}");
+                    _logger.LogTrace("EchoProperty Remove {Property}", e.instance.GetDebugString());
                     break;
                 default:
                     break;
@@ -72,7 +69,7 @@ namespace EchoDotNetLiteSkstackIpBridge.Example
         {
             if (sender is EchoPropertyInstance echoPropertyInstance)
             {
-                _logger.LogTrace($"EchoProperty Change {echoPropertyInstance.GetDebugString()} {BytesConvert.ToHexString(e)}");
+                _logger.LogTrace("EchoProperty Change {Property} {HexValue}", echoPropertyInstance.GetDebugString(), BytesConvert.ToHexString(e));
             }
         }
 
@@ -102,7 +99,7 @@ namespace EchoDotNetLiteSkstackIpBridge.Example
                 {
                     await echoClient.プロパティ値読み出し(
                         echoClient.SelfNode.Devices.First(),//コントローラー
-                        node,device,new EchoPropertyInstance[] { prop }
+                        node, device, new EchoPropertyInstance[] { prop }
                         , 5 * 1000);
                 }
 
@@ -117,7 +114,7 @@ namespace EchoDotNetLiteSkstackIpBridge.Example
                         Task.Run(() =>
                             echoClient.プロパティ値読み出し(
                                 echoClient.SelfNode.Devices.First(),//コントローラー
-                                node,device, properties
+                                node, device, properties
                                 , 20 * 1000)
                         ).ContinueWith((t) =>
                         {
@@ -130,8 +127,8 @@ namespace EchoDotNetLiteSkstackIpBridge.Example
                             var 現在時刻設定 = properties.Where(p => p.Spec.Name == "現在時刻設定").First();
                             var 現在年月日設定 = properties.Where(p => p.Spec.Name == "現在年月日設定").First();
 
-                            _logger.LogDebug($"瞬時電力計測値:{EndianBitConverter.BigEndian.ToInt32(瞬時電力計測値.Value,0)}W");
-                            _logger.LogDebug($"瞬時電流計測値: R相{EndianBitConverter.BigEndian.ToInt16(瞬時電流計測値.Value, 0) * 0.1}A,T相{EndianBitConverter.BigEndian.ToInt16(瞬時電流計測値.Value, 2) * 0.1}A");
+                            _logger.LogDebug("瞬時電力計測値:{Value}W", EndianBitConverter.BigEndian.ToInt32(瞬時電力計測値.Value, 0));
+                            _logger.LogDebug("瞬時電流計測値: R相{R}A,T相{T}A", EndianBitConverter.BigEndian.ToInt16(瞬時電流計測値.Value, 0) * 0.1, EndianBitConverter.BigEndian.ToInt16(瞬時電流計測値.Value, 2) * 0.1);
                         });
                     }
                     finally

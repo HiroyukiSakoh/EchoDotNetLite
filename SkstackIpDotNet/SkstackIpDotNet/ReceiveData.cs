@@ -16,6 +16,15 @@ namespace SkstackIpDotNet
         /// <summary>
         /// デフォルトコンストラクタ
         /// </summary>
+        /// 
+        public ReceiveData()
+        {
+            PlainResponse = null;
+        }
+
+        /// <summary>
+        /// デフォルトコンストラクタ
+        /// </summary>
         /// <param name="response">レスポンス平文</param>
         /// 
         public ReceiveData(string response)

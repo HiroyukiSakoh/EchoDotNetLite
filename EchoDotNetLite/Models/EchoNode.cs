@@ -80,7 +80,7 @@ namespace EchoDotNetLite.Models
                     ClassGroupCode = classGroupCode,
                     ClassGroupName = "Unknown",
                     ClassGroupNameOfficial = "Unknown",
-                    ClassList = new List<EchoClass>(),
+                    ClassList = [],
                     SuperClass = null,
                 },
                 Class = new EchoClass()

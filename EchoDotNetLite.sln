@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28010.2050
+# Visual Studio Version 17
+VisualStudioVersion = 17.6.33801.468
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SkstackIpDotNet", "SkstackIpDotNet\SkstackIpDotNet\SkstackIpDotNet.csproj", "{945A2ABF-FD42-45C6-BF6F-585DEE7CDDEC}"
 EndProject
@@ -17,9 +17,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EchoDotNetLiteSkstackIpBrid
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EchoDotNetLiteSkstackIpBridge.Example", "EchoDotnetLiteSkstackIpBridge.Example\EchoDotNetLiteSkstackIpBridge.Example.csproj", "{9969D57F-AF37-4EF9-B713-8C82E893B58C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EchoDotNetLiteLANBridge", "EchoDotNetLiteLANBridge\EchoDotNetLiteLANBridge.csproj", "{EC001E5D-976C-4E17-A45B-245641AFF679}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EchoDotNetLiteLANBridge", "EchoDotNetLiteLANBridge\EchoDotNetLiteLANBridge.csproj", "{EC001E5D-976C-4E17-A45B-245641AFF679}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EchoDotNetLiteLANBridge.Example", "EchoDotNetLiteLANBridge.Example\EchoDotNetLiteLANBridge.Example.csproj", "{0CEED5C1-1BDD-45B5-A729-0825BFE8054C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EchoDotNetLiteLANBridge.Example", "EchoDotNetLiteLANBridge.Example\EchoDotNetLiteLANBridge.Example.csproj", "{0CEED5C1-1BDD-45B5-A729-0825BFE8054C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

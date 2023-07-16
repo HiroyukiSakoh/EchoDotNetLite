@@ -19,10 +19,7 @@ namespace EchoDotNetLite.Models
         public EchoObjectInstance(EOJ eoj)
         {
             IEchonetObject classObject = SpecificationUtil.FindClass(eoj.ClassGroupCode, eoj.ClassCode);
-            if (classObject == null)
-            {
-                classObject = SpecificationUtil.GenerateUnknownClass(eoj.ClassGroupCode, eoj.ClassCode);
-            }
+            classObject ??= SpecificationUtil.GenerateUnknownClass(eoj.ClassGroupCode, eoj.ClassCode);
             Spec = classObject;
             InstanceCode = eoj.InstanceCode;
             Properties = new NotifyChangeCollection<EchoObjectInstance, EchoPropertyInstance>(this);

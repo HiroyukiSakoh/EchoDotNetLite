@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
-using System.Text;
 
 namespace EchoDotNetLite.Models
 {
@@ -19,13 +15,10 @@ namespace EchoDotNetLite.Models
         public EchoPropertyInstance(byte classGroupCode, byte classCode, byte epc)
         {
             Spec = SpecificationUtil.FindProperty(classGroupCode, classCode, epc);
-            if (Spec == null)
+            Spec ??= new Specifications.EchoProperty()
             {
-                Spec = new Specifications.EchoProperty()
-                {
-                    Code = epc,
-                };
-            }
+                Code = epc,
+            };
             Get = false;
             Set = false;
             Anno = false;

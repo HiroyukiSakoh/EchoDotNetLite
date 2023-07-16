@@ -12,10 +12,7 @@ namespace EchoDotNetLite.Specifications
         public EchonetObject(byte classGroupCode, byte classCode)
         {
             ClassGroup = SpecificationMaster.GetInstance().プロファイル.Where(p => p.ClassGroupCode == classGroupCode).FirstOrDefault();
-            if (ClassGroup == null)
-            {
-                ClassGroup = SpecificationMaster.GetInstance().機器.Where(p => p.ClassGroupCode == classGroupCode).FirstOrDefault();
-            }
+            ClassGroup ??= SpecificationMaster.GetInstance().機器.Where(p => p.ClassGroupCode == classGroupCode).FirstOrDefault();
             if (ClassGroup != null)
             {
                 //スーパークラスのプロパティを列挙
@@ -51,7 +48,7 @@ namespace EchoDotNetLite.Specifications
         /// <summary>
         /// 仕様上定義済みのプロパティの一覧
         /// </summary>
-        internal List<EchoProperty> Properties { get; set; } = new List<EchoProperty>();
+        internal List<EchoProperty> Properties { get; set; } = [];
 
         /// <summary>
         /// 仕様上定義済みのGETプロパティの一覧
