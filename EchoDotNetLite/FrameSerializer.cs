@@ -108,7 +108,7 @@ namespace EchoDotNetLite
                 // OPCGet 処理プロパティ数(1B)
                 var opcGet = br.ReadByte();
                 edata.OPCGetList = [];
-                for (int i = 0; i < opcSet; i++)
+                for (int i = 0; i < opcGet; i++)
                 {
                     var prp = new PropertyRequest
                     {
