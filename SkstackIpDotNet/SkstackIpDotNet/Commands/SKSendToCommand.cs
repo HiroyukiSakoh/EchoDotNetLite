@@ -20,7 +20,7 @@ namespace SkstackIpDotNet.Commands
         /// コンストラクタ
         /// </summary>
         /// <param name="input">入力</param>
-        public SKSendToCommand(Input input) : base("SKSENDTO")
+        public SKSendToCommand(Input input) : base("SKSENDTO", 20000)
         {
             Arg = input;
         }
@@ -32,14 +32,12 @@ namespace SkstackIpDotNet.Commands
         {
             get
             {
-                using (var ms = new MemoryStream())
-                using(var bw = new BinaryWriter(ms))
-                {
+                using var ms = new MemoryStream();
+                using var bw = new BinaryWriter(ms);
 
-                    bw.Write(Encoding.ASCII.GetBytes($"{Arg.Handle} {Arg.Ipaddr} {Arg.Port} {(char)Arg.Sec} {Arg.Datalen} "));
-                    bw.Write(Arg.Data);
-                    return ms.ToArray();
-                }
+                bw.Write(Encoding.ASCII.GetBytes($"{Arg.Handle} {Arg.Ipaddr} {Arg.Port} {(char)Arg.Sec} {Arg.Datalen} "));
+                bw.Write(Arg.Data);
+                return ms.ToArray();
             }
         }
 

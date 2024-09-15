@@ -32,18 +32,16 @@ namespace SkstackIpDotNet.Commands
 
         internal virtual byte[] GetCommandWithArgument()
         {
-            using (var ms = new MemoryStream())
-            using (var bw = new BinaryWriter(ms))
+            using var ms = new MemoryStream();
+            using var bw = new BinaryWriter(ms);
+            bw.Write(Encoding.ASCII.GetBytes(Command));
+            if (Arguments != null)
             {
-                bw.Write(Encoding.ASCII.GetBytes(Command));
-                if (Arguments != null)
-                {
-                    bw.Write(Encoding.ASCII.GetBytes(" "));
-                    bw.Write(Arguments);
-                }
-                bw.Write(Encoding.ASCII.GetBytes("\r\n"));
-                return ms.ToArray();
+                bw.Write(Encoding.ASCII.GetBytes(" "));
+                bw.Write(Arguments);
             }
+            bw.Write(Encoding.ASCII.GetBytes("\r\n"));
+            return ms.ToArray();
         }
 
         internal virtual string GetCommandLogString()

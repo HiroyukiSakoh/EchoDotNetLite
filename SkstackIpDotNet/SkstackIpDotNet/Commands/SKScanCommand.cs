@@ -1,9 +1,9 @@
-﻿using SkstackIpDotNet.Responses;
-using SkstackIpDotNet.Events;
+﻿using SkstackIpDotNet.Events;
+using SkstackIpDotNet.Responses;
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace SkstackIpDotNet.Commands
 {
@@ -30,7 +30,7 @@ namespace SkstackIpDotNet.Commands
         bool isEEDSCANReceiveStart = false;
         List<string> eventBufferEPANDESC = null;
         bool isEPANDESCReceiveStart = false;
-        SKScanResponse response = new SKScanResponse();
+        readonly SKScanResponse response = new();
         public override void ReceiveHandler(object sendor, string eventRow)
         {
             base.ReceiveHandler(sendor, eventRow);
@@ -67,10 +67,10 @@ namespace SkstackIpDotNet.Commands
             else if (eventRow.StartsWith("EPANDESC"))
             {
                 isEPANDESCReceiveStart = true;
-                eventBufferEPANDESC = new List<string>
-                {
+                eventBufferEPANDESC =
+                [
                     eventRow
-                };
+                ];
             }
             else if (isEPANDESCReceiveStart)
             {
@@ -122,7 +122,7 @@ namespace SkstackIpDotNet.Commands
 
         public class SKScanResponse
         {
-            public List<EPANDESC> epandescs = new List<EPANDESC>();
+            public List<EPANDESC> epandescs = [];
             public EEDSCAN eedscan = null;
             public EVENT @event = null;
         }

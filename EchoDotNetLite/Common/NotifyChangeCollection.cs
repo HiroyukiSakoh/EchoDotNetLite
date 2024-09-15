@@ -10,7 +10,7 @@ namespace EchoDotNetLite.Common
         public NotifyChangeCollection(TParent parentNode)
         {
             ParentNode = parentNode;
-            InnnerConnection = new List<TItem>();
+            InnnerConnection = [];
         }
         private TParent ParentNode;
         private List<TItem> InnnerConnection;

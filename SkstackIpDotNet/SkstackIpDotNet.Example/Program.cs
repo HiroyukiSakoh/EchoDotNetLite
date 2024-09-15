@@ -48,20 +48,18 @@ namespace SkstackIpDotNet.Example
                     devicePort = "/dev/ttyUSB0";
                 }
 
-                using (var skdevice = serviceProvider.GetService<SKDevice>())
+                using var skdevice = serviceProvider.GetService<SKDevice>();
+                var program = new Program(logger, skdevice);
+                skdevice.Open(devicePort, 115200, 8, Parity.None, StopBits.One);
+                skdevice.OnEVENTReceived += (sender, e) =>
                 {
-                    var program = new Program(logger, skdevice);
-                    skdevice.Open(devicePort, 115200, 8, Parity.None, StopBits.One);
-                    skdevice.OnEVENTReceived += (sender, e) =>
-                    {
-                        logger.LogDebug(e.ToString());
-                    };
-                    skdevice.OnERXUDPReceived += (sender, e) =>
-                    {
-                        logger.LogDebug(e.ToString());
-                    };
-                    program.ExecuteAsync().Wait();
-                }
+                    logger.LogDebug(e.ToString());
+                };
+                skdevice.OnERXUDPReceived += (sender, e) =>
+                {
+                    logger.LogDebug(e.ToString());
+                };
+                program.ExecuteAsync().Wait();
             }
             catch (AggregateException ex)
             {

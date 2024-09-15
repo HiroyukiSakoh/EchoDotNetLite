@@ -41,8 +41,7 @@ namespace SkstackIpDotNet.Commands
                 || eventRow.StartsWith("EHANDLE"))
             {
                 isEventStart = true;
-                eventBuffer = new List<string>();
-                eventBuffer.Add(eventRow);
+                eventBuffer = [eventRow];
             }
             else if (isEventStart)
             {

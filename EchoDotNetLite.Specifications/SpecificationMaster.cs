@@ -38,9 +38,7 @@ namespace EchoDotNetLite.Specifications
 
         internal static string GetSpecificationMasterDataDirectory()
         {
-            var assemblyLocatedDirectory = Path.GetDirectoryName(typeof(SpecificationMaster).Assembly.Location);
-
-            return Path.Combine(assemblyLocatedDirectory, "MasterData");
+            return Path.Combine(AppContext.BaseDirectory, "MasterData");
         }
 
         /// <summary>

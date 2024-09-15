@@ -16,7 +16,7 @@ namespace EchoDotNetLite
     {
         private readonly IPANAClient _panaClient;
         private readonly ILogger _logger;
-        public EchoClient(ILogger<EchoClient> logger,IPANAClient panaClient)
+        public EchoClient(ILogger<EchoClient> logger, IPANAClient panaClient)
         {
             _logger = logger;
             _panaClient = panaClient;
@@ -25,13 +25,14 @@ namespace EchoDotNetLite
             {
                 NodeProfile = new EchoObjectInstance(Specifications.プロファイル.ノードプロファイル, 0x01),
             };
-            NodeList = new List<EchoNode>();
+            NodeList = [];
             //自己消費用
             OnFrameReceived += ReceiveFrame;
         }
 
         public void Initialize(string selfAddress)
         {
+            _logger.LogInformation("自ノード IPアドレスを設定:{selfAddress}", selfAddress);
             SelfNode.Address = selfAddress;
         }
 
@@ -51,6 +52,7 @@ namespace EchoDotNetLite
 
         public async Task インスタンスリスト通知Async()
         {
+            _logger.LogInformation("インスタンスリスト通知");
             //インスタンスリスト通知プロパティ
             var property = SelfNode.NodeProfile.ANNOProperties.Where(p => p.Spec.Code == 0xD5).First();
             using (var ms = new MemoryStream())
@@ -79,12 +81,13 @@ namespace EchoDotNetLite
                     InstanceCode = 0x01,
 
                 })
-                , new List<EchoPropertyInstance>() { property }
+                , [property]
                 );
         }
         public async Task インスタンスリスト通知要求Async()
         {
-            var a = new List<EchoPropertyInstance>() { new EchoPropertyInstance(
+            _logger.LogInformation("インスタンスリスト通知要求");
+            var a = new List<EchoPropertyInstance>() { new(
                 Specifications.プロファイル.ノードプロファイル.ClassGroup.ClassGroupCode,
                 Specifications.プロファイル.ノードプロファイル.Class.ClassCode,
                 0xD5//インスタンスリスト通知
@@ -122,8 +125,8 @@ namespace EchoDotNetLite
             var handler = default(EventHandler<(string, Frame)>);
             handler += (object sender, (string address, Frame response) value) =>
             {
-                if ((destinationNode!=null && value.address != destinationNode.Address)
-                    || !(value.response.EDATA is EDATA1 edata)
+                if ((destinationNode != null && value.address != destinationNode.Address)
+                    || value.response.EDATA is not EDATA1 edata
                     || edata.SEOJ != destinationObject.GetEOJ()
                     || edata.ESV != ESV.SetI_SNA)
                 {
@@ -201,7 +204,7 @@ namespace EchoDotNetLite
             handler += (object sender, (string address, Frame response) value) =>
             {
                 if ((destinationNode != null && value.address != destinationNode.Address)
-                    || !(value.response.EDATA is EDATA1 edata)
+                    || value.response.EDATA is not EDATA1 edata
                     || edata.SEOJ != destinationObject.GetEOJ()
                     || (edata.ESV != ESV.SetC_SNA && edata.ESV != ESV.Set_Res)
                     )
@@ -212,7 +215,7 @@ namespace EchoDotNetLite
                 {
                     //成功した書き込みを反映
                     var target = destinationObject.Properties.Where(p => p.Spec.Code == prop.EPC).First();
-                    if(prop.PDC == 0x00)
+                    if (prop.PDC == 0x00)
                     {
                         //書き込み成功
                         target.Value = properties.Where(p => p.Spec.Code == prop.EPC).First().Value;
@@ -268,12 +271,14 @@ namespace EchoDotNetLite
             , IEnumerable<EchoPropertyInstance> properties
             , int timeoutMilliseconds = 1000)
         {
+            _logger.LogInformation("{Node}のプロパティ値を読み出します({Properties})", destinationNode.NodeProfile.GetDebugString(),
+                string.Join(',', properties.Select(s => s.GetDebugString())));
             var responseTCS = new TaskCompletionSource<(bool, List<PropertyRequest>)>();
             var handler = default(EventHandler<(string, Frame)>);
             handler += (object sender, (string address, Frame response) value) =>
             {
                 if ((destinationNode != null && value.address != destinationNode.Address)
-                    || !(value.response.EDATA is EDATA1 edata)
+                    || value.response.EDATA is not EDATA1 edata
                     || edata.SEOJ != destinationObject.GetEOJ()
                     || (edata.ESV != ESV.Get_Res && edata.ESV != ESV.Get_SNA)
                     )
@@ -346,7 +351,7 @@ namespace EchoDotNetLite
             handler += (object sender, (string address, Frame response) value) =>
             {
                 if ((destinationNode != null && value.address != destinationNode.Address)
-                    || !(value.response.EDATA is EDATA1 edata)
+                    || value.response.EDATA is not EDATA1 edata
                     || edata.SEOJ != destinationObject.GetEOJ()
                     || (edata.ESV != ESV.SetGet_Res && edata.ESV != ESV.SetGet_SNA)
                     )
@@ -373,7 +378,7 @@ namespace EchoDotNetLite
                         target.Value = prop.EDT;
                     }
                 }
-                responseTCS.SetResult((edata.ESV == ESV.SetGet_Res, edata.OPCSetList,edata.OPCGetList));
+                responseTCS.SetResult((edata.ESV == ESV.SetGet_Res, edata.OPCSetList, edata.OPCGetList));
                 //TODO 一斉通知の応答の扱いが…
                 OnFrameReceived -= handler;
             };
@@ -503,7 +508,7 @@ namespace EchoDotNetLite
             handler += (object sender, (string address, Frame response) value) =>
             {
                 if (value.address != destinationNode.Address
-                    || !(value.response.EDATA is EDATA1 edata)
+                    || value.response.EDATA is not EDATA1 edata
                     || edata.SEOJ != destinationObject.GetEOJ()
                     || (edata.ESV != ESV.INFC_Res)
                     )
@@ -548,25 +553,25 @@ namespace EchoDotNetLite
             var frame = FrameSerializer.Deserialize(value.e);
             if (frame != null)
             {
-                _logger.LogTrace($"Echonet Lite Frame受信: address:{value.address}\r\n,{JsonConvert.SerializeObject(frame)}");
+                _logger.LogTrace("Echonet Lite Frame受信: address:{address}\r\n,{frame}", value.address, JsonConvert.SerializeObject(frame));
                 OnFrameReceived?.Invoke(this, (value.address, frame));
             }
         }
 
-        private async Task RequestAsync(string address,Frame frame)
+        private async Task RequestAsync(string address, Frame frame)
         {
-            _logger.LogTrace($"Echonet Lite Frame送信: address:{address}\r\n,{JsonConvert.SerializeObject(frame)}");
+            _logger.LogTrace("Echonet Lite Frame送信: address:{address}\r\n,{frame}", address, JsonConvert.SerializeObject(frame));
             await _panaClient.RequestAsync(address, FrameSerializer.Serialize(frame));
         }
 
         private void インスタンスリスト通知受信(EchoNode sourceNode, byte[] edt)
         {
-            _logger.LogTrace("インスタンスリスト通知を受信しました");
+            _logger.LogInformation("インスタンスリスト通知を受信しました");
             using (var ms = new MemoryStream(edt))
             using (var br = new BinaryReader(ms))
             {
                 var count = br.ReadByte();
-                for(int i = 0; i < count; i++)
+                for (int i = 0; i < count; i++)
                 {
                     var classGroupCode = br.ReadByte();
                     var classCode = br.ReadByte();
@@ -585,14 +590,14 @@ namespace EchoDotNetLite
                     }
                     if (!device.IsPropertyMapGet)
                     {
-                        _logger.LogTrace($"{device.GetDebugString()} プロパティマップを読み取ります");
+                        _logger.LogInformation("{Device} プロパティマップを読み取ります", device.GetDebugString());
                         プロパティマップ読み取り(sourceNode, device);
                     }
                 }
             }
             if (!sourceNode.NodeProfile.IsPropertyMapGet)
             {
-                _logger.LogTrace($"{sourceNode.NodeProfile.GetDebugString()} プロパティマップを読み取ります");
+                _logger.LogInformation("{Node} プロパティマップを読み取ります", sourceNode.NodeProfile.GetDebugString());
                 プロパティマップ読み取り(sourceNode, sourceNode.NodeProfile);
             }
         }
@@ -604,21 +609,21 @@ namespace EchoDotNetLite
                         p.Spec.Code == 0x9D //状変アナウンスプロパティマップ
                         || p.Spec.Code == 0x9E //Set プロパティマップ
                         || p.Spec.Code == 0x9F //Get プロパティマップ
-                    ),20000
+                    ), 20000
             ).ContinueWith((result) =>
             {
                 if (!result.IsCompletedSuccessfully)
                 {
-                    _logger.LogTrace($"{device.GetDebugString()} プロパティマップの読み取りがタイムアウトしました");
+                    _logger.LogWarning("{Device} プロパティマップの読み取りがタイムアウトしました", device.GetDebugString());
                     return;
                 }
                 //不可応答は無視
                 if (!result.Result.Item1)
                 {
-                    _logger.LogTrace($"{device.GetDebugString()} プロパティマップの読み取りで不可応答が返答されました");
+                    _logger.LogWarning("{Device} プロパティマップの読み取りで不可応答が返答されました", device.GetDebugString());
                     return;
                 }
-                _logger.LogTrace($"{device.GetDebugString()} プロパティマップの読み取りが成功しました");
+                _logger.LogInformation("{Device} プロパティマップの読み取りが成功しました", device.GetDebugString());
                 device.Properties.Clear();
                 foreach (var pr in result.Result.Item2)
                 {
@@ -675,67 +680,65 @@ namespace EchoDotNetLite
                     sb.AppendFormat("\t{0}\r\n", temp.GetDebugString());
                 }
                 sb.AppendLine("------");
-                _logger.LogTrace(sb.ToString());
+                _logger.LogTrace("{PropertyMap}", sb.ToString());
                 device.IsPropertyMapGet = true;
             });
         }
 
         public static List<byte> ParsePropertyMap(byte[] value)
         {
-            using (var ms = new MemoryStream(value))
-            using (var br = new BinaryReader(ms))
+            using var ms = new MemoryStream(value);
+            using var br = new BinaryReader(ms);
+            var epcList = new List<byte>();
+            var count = br.ReadByte();
+            if (count < 0x10)
             {
-                var epcList = new List<byte>();
-                var count = br.ReadByte();
-                if (count < 0x10)
+                //パターン1
+                for (var i = 0; i < count; i++)
                 {
-                    //パターン1
-                    for (var i = 0; i < count; i++)
-                    {
-                        epcList.Add(br.ReadByte());
-                    }
+                    epcList.Add(br.ReadByte());
                 }
-                else
-                {
-                    for (var i = 0; i < 16; i++)
-                    {
-                        var flag = br.ReadByte();
-                        if ((flag & 0b10000000) == 0b10000000)
-                        {
-                            epcList.Add((byte)(0xF0 | (byte)i));
-                        }
-                        if ((flag & 0b01000000) == 0b01000000)
-                        {
-                            epcList.Add((byte)(0xE0 | (byte)i));
-                        }
-                        if ((flag & 0b00100000) == 0b00100000)
-                        {
-                            epcList.Add((byte)(0xD0 | (byte)i));
-                        }
-                        if ((flag & 0b00010000) == 0b00010000)
-                        {
-                            epcList.Add((byte)(0xC0 | (byte)i));
-                        }
-                        if ((flag & 0b00001000) == 0b00001000)
-                        {
-                            epcList.Add((byte)(0xB0 | (byte)i));
-                        }
-                        if ((flag & 0b00000100) == 0b00000100)
-                        {
-                            epcList.Add((byte)(0xA0 | (byte)i));
-                        }
-                        if ((flag & 0b00000010) == 0b00000010)
-                        {
-                            epcList.Add((byte)(0x90 | (byte)i));
-                        }
-                        if ((flag & 0b00000001) == 0b00000001)
-                        {
-                            epcList.Add((byte)(0x80 | (byte)i));
-                        }
-                    }
-                }
-                return epcList;
             }
+            else
+            {
+                for (var i = 0; i < 16; i++)
+                {
+                    var flag = br.ReadByte();
+                    if ((flag & 0b10000000) == 0b10000000)
+                    {
+                        epcList.Add((byte)(0xF0 | (byte)i));
+                    }
+                    if ((flag & 0b01000000) == 0b01000000)
+                    {
+                        epcList.Add((byte)(0xE0 | (byte)i));
+                    }
+                    if ((flag & 0b00100000) == 0b00100000)
+                    {
+                        epcList.Add((byte)(0xD0 | (byte)i));
+                    }
+                    if ((flag & 0b00010000) == 0b00010000)
+                    {
+                        epcList.Add((byte)(0xC0 | (byte)i));
+                    }
+                    if ((flag & 0b00001000) == 0b00001000)
+                    {
+                        epcList.Add((byte)(0xB0 | (byte)i));
+                    }
+                    if ((flag & 0b00000100) == 0b00000100)
+                    {
+                        epcList.Add((byte)(0xA0 | (byte)i));
+                    }
+                    if ((flag & 0b00000010) == 0b00000010)
+                    {
+                        epcList.Add((byte)(0x90 | (byte)i));
+                    }
+                    if ((flag & 0b00000001) == 0b00000001)
+                    {
+                        epcList.Add((byte)(0x80 | (byte)i));
+                    }
+                }
+            }
+            return epcList;
         }
 
         private void ReceiveFrame(object sendor, (string address, Frame frame) value)
@@ -755,7 +758,7 @@ namespace EchoDotNetLite
                         NodeProfile = new EchoObjectInstance(Specifications.プロファイル.ノードプロファイル, 0x01),
                     };
                     NodeList.Add(sourceNode);
-                    OnNodeJoined?.Invoke(this,sourceNode);
+                    OnNodeJoined?.Invoke(this, sourceNode);
                 }
                 EchoObjectInstance destObject = null;
                 //自ノードプロファイル宛てのリクエストの場合
@@ -800,7 +803,7 @@ namespace EchoDotNetLite
                         //プロパティ値通知要求 INF_REQのレスポンス
                         //または、自発的な通知のケースがある。
                         //なので、要求送信(INF_REQ)のハンドラでも対処するが、こちらでも自発として対処をする。
-                        task = Task.Run(() => プロパティ値通知サービス(value, edata, sourceNode));
+                        task = Task.Run(() => プロパティ値通知サービス(edata, sourceNode));
                         break;
                     case ESV.INFC: //プロパティ値通知（応答要）
                         //プロパティ値通知応答 INFC_Res
@@ -918,7 +921,7 @@ namespace EchoDotNetLite
         {
             bool hasError = false;
             var opcList = new List<PropertyRequest>();
-            if (destObject != null)
+            if (destObject == null)
             {
                 //DEOJがない場合、全OPCをそのまま返す
                 hasError = true;
@@ -992,7 +995,7 @@ namespace EchoDotNetLite
         {
             bool hasError = false;
             var opcList = new List<PropertyRequest>();
-            if (destObject != null)
+            if (destObject == null)
             {
                 //DEOJがない場合、全OPCをそのまま返す
                 hasError = true;
@@ -1068,7 +1071,7 @@ namespace EchoDotNetLite
             bool hasError = false;
             var opcSetList = new List<PropertyRequest>();
             var opcGetList = new List<PropertyRequest>();
-            if (destObject != null)
+            if (destObject == null)
             {
                 //DEOJがない場合、全OPCをそのまま返す
                 hasError = true;
@@ -1164,7 +1167,7 @@ namespace EchoDotNetLite
         /// <param name="edata"></param>
         /// <param name="sourceNode"></param>
         /// <returns></returns>
-        private bool プロパティ値通知サービス((string address, Frame frame) request, EDATA1 edata, EchoNode sourceNode)
+        private bool プロパティ値通知サービス(EDATA1 edata, EchoNode sourceNode)
         {
             bool hasError = false;
             var sourceObject = sourceNode.Devices.Where(d => d.GetEOJ() == edata.SEOJ).FirstOrDefault();
